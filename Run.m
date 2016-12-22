@@ -27,10 +27,10 @@ profileFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
 eyeDetector = vision.CascadeObjectDetector('ClassificationModel',...
     'EyePairBig', 'MinSize',[11,45],'MaxSize',[400,400],'UseROI',true);
 
+% データ保存用の変数
 alpha_hat=zeros(200,1);
 beta_hat=zeros(200,1);
 gamma_hat=zeros(200,1);
-% width=zeros(200,1);
 
 % 最初に1フレームを読み込む
 % 読み込みフレーム番号はループ処理直前でリセットされる
@@ -42,7 +42,7 @@ grayR=rgb2gray(imgR);
 videoSize=size(imgL);
 
 % dispRangeを決定する
-[dispRange,prevFaceBbox]=determineDisparityRange(grayL,grayR);
+[minDisparity,prevFaceBbox]=determineMinDisparity(grayL,grayR);
 prevBbox=detectEyeBbox(grayL,grayR,eyeDetector,prevFaceBbox,camera);
 if isempty(prevBbox)
     disp('error')
@@ -55,6 +55,8 @@ frameIdx=0;
 camera=2;
 
 %% ループ処理
+% 角度の推定を行う
+
 while 1
     % フレーム番号表示
     frameIdx=frameIdx+1;
@@ -97,7 +99,7 @@ while 1
     %%
             
     % 視差計算
-    dispMap=disparityBbox(grayL,grayR,bbox,dispRange,camera); % bbox??????????????
+    dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera); % bbox??????????????
     
     
     
@@ -179,19 +181,21 @@ while 1
 %         title('ptCloudScene');
 %         drawnow('limitrate')
 
-figure(20)
-plot(beta_hat)
-drawnow
+% figure(20)
+% plot(beta_hat)
+% drawnow
 %     
     
     if EOF
         break
     end
 end
-%         figure(1);
-%     pcshow(ptCloudScene, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
-%     title('ptCloudScene');
-%     drawnow('limitrate')
-%
-%     figure(2)
-%     plot(beta_hat)
+
+%% 後処理
+figure(99);
+pcshow(ptCloudScene, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+title('ptCloudScene');
+
+figure(98)
+plot(beta_hat)
+title('beta_hat')

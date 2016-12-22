@@ -1,4 +1,4 @@
-function [ disparityMap ] = disparityBbox( grayL, grayR, bbox, dispRange, camera )
+function [ disparityMap ] = disparityBbox( grayL, grayR, bbox, minDisparity, camera )
 %DISPARITYBBOX ???J??????????o????Bbox?????????????v?Z????
 %
 %   [ disparityMap ] = disparityBbox( imgL, imgR, bbox, dispRange )
@@ -26,7 +26,7 @@ switch camera
         ROIL=grayL(y:y+h,1:x+w);
         ROIR=grayR(y:y+h,1:x+w);
         
-        bm.MinDisparity=dispRange(1);
+        bm.MinDisparity=minDisparity;
         dispMapROI=bm.compute(ROIL, ROIR);
         dispMapROI=single(dispMapROI)/16;
         disparityMap(y:y+h,x:x+w)=dispMapROI(:,x:x+w);
@@ -35,8 +35,7 @@ switch camera
         ROIL=grayL(y:y+h,x:end);
         ROIR=grayR(y:y+h,x:end);
         
-        dispRange=[-dispRange(2),-dispRange(1)];
-        bm.MinDisparity=dispRange(1);
+        bm.MinDisparity=-(minDisparity+64);
         dispMapROI=bm.compute(ROIR, ROIL);
         dispMapROI=single(dispMapROI)/16;
         disparityMap(y:y+h,x:x+w)=dispMapROI(:,1:1+w);
