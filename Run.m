@@ -2,24 +2,24 @@ close all
 clear
 clc
 
-% ÉOÉçÅ[ÉoÉãç¿ïWånÇ≈ç∂ÉJÉÅÉâÇÃà íuÇå¥ì_Ç∆Ç∑ÇÈ
-% Ç∑Ç◊ÇƒÇÃ3éüå≥ïúå≥åãâ ÇÕç∂ÉJÉÅÉâÇå¥ì_Ç∆ÇµÇƒï€ë∂Ç≥ÇÍÇÈ
+% „Ç∞„É≠„Éº„Éê„É´Â∫ßÊ®ôÁ≥ª„ÅßÂ∑¶„Ç´„É°„É©„ÅÆ‰ΩçÁΩÆ„ÇíÂéüÁÇπ„Å®„Åô„Çã
+% „Åô„Åπ„Å¶„ÅÆ3Ê¨°ÂÖÉÂæ©ÂÖÉÁµêÊûú„ÅØÂ∑¶„Ç´„É°„É©„ÇíÂéüÁÇπ„Å®„Åó„Å¶‰øùÂ≠ò„Åï„Çå„Çã
 
-% ÉtÉåÅ[ÉÄÇ≤Ç∆Ç…èàóùÇÃäÓèÄÇ∆Ç»ÇÈÉJÉÅÉâÇëIëÇµÅAêÿÇËë÷Ç¶ÇÈ
-% ÉàÅ[äpìxÇÃïÑçÜÇÕéÒÇâEÇ…êUÇÈï˚å¸Ç™ê≥ÅAç∂Ç…êUÇÈï˚å¸Ç™ïâ
-% ÉàÅ[äpìxÇ™ê≥...âEÉJÉÅÉâÇäÓèÄÇ∆Ç∑ÇÈ
-% ÉàÅ[äpìxÇ™ïâ...ç∂ÉJÉÅÉâÇäÓèÄÇ∆Ç∑ÇÈ
+% „Éï„É¨„Éº„É†„Åî„Å®„Å´Âá¶ÁêÜ„ÅÆÂü∫Ê∫ñ„Å®„Å™„Çã„Ç´„É°„É©„ÇíÈÅ∏Êäû„Åó„ÄÅÂàá„ÇäÊõø„Åà„Çã
+% „É®„ÉºËßíÂ∫¶„ÅÆÁ¨¶Âè∑„ÅØÈ¶ñ„ÇíÂè≥„Å´ÊåØ„ÇãÊñπÂêë„ÅåÊ≠£„ÄÅÂ∑¶„Å´ÊåØ„ÇãÊñπÂêë„ÅåË≤†
+% „É®„ÉºËßíÂ∫¶„ÅåÊ≠£...Âè≥„Ç´„É°„É©„ÇíÂü∫Ê∫ñ„Å®„Åô„Çã
+% „É®„ÉºËßíÂ∫¶„ÅåË≤†...Â∑¶„Ç´„É°„É©„ÇíÂü∫Ê∫ñ„Å®„Åô„Çã
 
-%% ëOèàóù
-% ÉãÅ[ÉvèàóùÇÃëOÇ…1ìxÇæÇØé¿çsÇ∑ÇÈèàóù
+%% ÂâçÂá¶ÁêÜ
+% „É´„Éº„ÉóÂá¶ÁêÜ„ÅÆÂâç„Å´1Â∫¶„Å†„ÅëÂÆüË°å„Åô„ÇãÂá¶ÁêÜ
 
-% ìÆâÊì«Ç›çûÇ›
+% ÂãïÁîªË™≠„ÅøËæº„Åø
 videoFileReader=vision.VideoFileReader('D:arai\1.avi','VideoOutputDataType','uint8');
 
-% ÉXÉeÉåÉIÉpÉâÉÅÅ[É^Å[ÇÃì«Ç›çûÇ›
+% „Çπ„ÉÜ„É¨„Ç™„Éë„É©„É°„Éº„Çø„Éº„ÅÆË™≠„ÅøËæº„Åø
 load('stereoParams');
 
-% åüèoäÌÇÃì«Ç›çûÇ›
+% Ê§úÂá∫Âô®„ÅÆË™≠„ÅøËæº„Åø
 frontalFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
     'FrontalFaceCART', 'MinSize',[200,200],'MaxSize',[400,400]);
 profileFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
@@ -27,65 +27,105 @@ profileFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
 eyeDetector = vision.CascadeObjectDetector('ClassificationModel',...
     'EyePairBig', 'MinSize',[11,45],'MaxSize',[400,400],'UseROI',true);
 
-% ÉfÅ[É^ï€ë∂ópÇÃïœêî
-alpha_hat=zeros(200,1);
-beta_hat=zeros(200,1);
-gamma_hat=zeros(200,1);
+% „Éá„Éº„Çø‰øùÂ≠òÁî®„ÅÆÂ§âÊï∞
+alphas=zeros(200,1);
+betas=zeros(200,1);
+gammas=zeros(200,1);
+maxYaw=0;
+minYaw=0;
 
-% ç≈èâÇ…1ÉtÉåÅ[ÉÄÇì«Ç›çûÇﬁ
-% ì«Ç›çûÇ›ÉtÉåÅ[ÉÄî‘çÜÇÕÉãÅ[ÉvèàóùíºëOÇ≈ÉäÉZÉbÉgÇ≥ÇÍÇÈ
+% „Éï„É¨„Éº„É†„Ç§„É≥„Éá„ÉÉ„ÇØ„Çπ
+frameIdx=0;
+
+%% ÊúÄÂàù„ÅÆ1„Éï„É¨„Éº„É†
 camera=1;
-rawStereoImg=step(videoFileReader);
-[imgL,imgR]=undistortAndRectifyStereoImage(rawStereoImg,stereoParams,camera);
-grayL=rgb2gray(imgL);
-grayR=rgb2gray(imgR);
-videoSize=size(imgL);
 
-% dispRangeÇåàíËÇ∑ÇÈ
-[minDisparity,prevFaceBbox]=determineMinDisparity(grayL,grayR);
-prevBbox=detectEyeBbox(grayL,grayR,eyeDetector,prevFaceBbox,camera);
-if isempty(prevBbox)
+[rawStereoImg,EOF]=step(videoFileReader);
+frameIdx=frameIdx+1;
+disp(frameIdx)
+
+% „Çπ„ÉÜ„É¨„Ç™ÁîªÂÉè„ÅÆÊ≠™„ÅøË£úÊ≠£„Å®Âπ≥Ë°åÂåñ
+[imgL,imgR]=undistortAndRectifyStereoImage(rawStereoImg,stereoParams,camera);
+
+% „Ç∞„É¨„Éº„Çπ„Ç±„Éº„É´Â§âÊèõ
+grayR=rgb2gray(imgR);
+grayL=rgb2gray(imgL);
+
+% È°îÊ§úÂá∫
+faceBbox=detectFaceBbox(grayL,grayR,frontalFaceDetector,profileFaceDetector,camera);
+if isempty(faceBbox)
     disp('error')
 end
 
-% ì«Ç›çûÇ›ÉtÉåÅ[ÉÄî‘çÜÇÃÉäÉZÉbÉg
-videoFileReader.reset
-frameIdx=0;
+% ‰∏°ÁõÆÈ†òÂüü„ÇíÊ§úÂá∫
+eyeBbox=detectEyeBbox(grayL,grayR,eyeDetector,faceBbox,camera);
+if isempty(bbox)
+    disp('error')
+end
 
-camera=2;
+% 3Ê¨°ÂÖÉÂæ©ÂÖÉ„ÇíË°å„ÅÜÈ†òÂüü„ÇíÊ±∫ÂÆö„Åô„Çã
+bbox=func(eyeBbox,width,camera);
 
-%% ÉãÅ[Évèàóù
-% äpìxÇÃêÑíËÇçsÇ§
+% minDisparity„ÅÆÊ±∫ÂÆö
+minDisparity=determineMinDisparity(grayL,grayR,bbox);
 
+% bboxÈ†òÂüü„ÅÆË¶ñÂ∑ÆË®àÁÆó
+dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
+
+% 3Ê¨°ÂÖÉÂ∫ßÊ®ô„Å´Â§âÊèõ
+xyzPoints = reconstructScene(dispMap,stereoParams{camera});
+xyzPoints=denoise(xyzPoints);
+
+% „Ç´„É°„É©„Å´Âøú„Åò„Å¶3Ê¨°ÂÖÉÂ∫ßÊ®ô„ÇíË™øÊï¥
+xyzPoints=relocate(xyzPoints,stereoParams,camera);
+
+% ptCloud„Å´Â§âÊèõ
+ptCloud=pointCloud(xyzPoints);
+
+face0=ptCloud;
+faceMaxYaw=pointCloud([]);
+faceMinYaw=pointCloud([]);
+face=face0;
+f = pcdownsample(face, 'random', 0.1);
+
+tform=affine3d;
+
+% ËßíÂ∫¶
+alphas(frameIdx)=0;
+beat_hat(frameIdx)=0;
+gammas(frameIdx)=0;
+
+
+
+%% „É´„Éº„ÉóÂá¶ÁêÜ
+% ËßíÂ∫¶„ÅÆÊé®ÂÆö„ÇíË°å„ÅÜ
 while 1
-    % ÉtÉåÅ[ÉÄî‘çÜï\é¶
+    % 1„Éï„É¨„Éº„É†Ë™≠„ÅøËæº„Åø
+    [rawStereoImg,EOF]=step(videoFileReader);
     frameIdx=frameIdx+1;
     disp(frameIdx)
     
-    % 1ÉtÉåÅ[ÉÄì«Ç›çûÇ›
-    [rawStereoImg,EOF]=step(videoFileReader);
-    
-    % ÉXÉeÉåÉIâÊëúÇÃòcÇ›ï‚ê≥Ç∆ïΩçsâª
+    % „Çπ„ÉÜ„É¨„Ç™ÁîªÂÉè„ÅÆÊ≠™„ÅøË£úÊ≠£„Å®Âπ≥Ë°åÂåñ
     [imgL,imgR]=undistortAndRectifyStereoImage(rawStereoImg,stereoParams,camera);
     
-    % ÉOÉåÅ[ÉXÉPÅ[Éãïœä∑
+    % „Ç∞„É¨„Éº„Çπ„Ç±„Éº„É´Â§âÊèõ
     grayR=rgb2gray(imgR);
     grayL=rgb2gray(imgL);
     
-    % äÁåüèo
+    % È°îÊ§úÂá∫
     faceBbox=detectFaceBbox(grayL,grayR,frontalFaceDetector,profileFaceDetector,camera);
     if isempty(faceBbox)
         continue
     end
     
-    % 3éüå≥ïúå≥ÇçsÇ§óÃàÊÇå¿íËÇ∑ÇÈ
-    bbox=detectEyeBbox(grayL,grayR,eyeDetector,faceBbox,camera);
+    % ‰∏°ÁõÆÈ†òÂüü„ÇíÊ§úÂá∫
+    eyeBbox=detectEyeBbox(grayL,grayR,eyeDetector,faceBbox,camera);
     if isempty(bbox)
         continue
     end
-    
-    %%
-    bbox=func(bbox,prevBbox(3),camera);
+
+    % 3Ê¨°ÂÖÉÂæ©ÂÖÉ„ÇíË°å„ÅÜÈ†òÂüü„ÇíÊ±∫ÂÆö„Åô„Çã
+    bbox=func(eyeBbox,width,camera);
 %     width(frameIdx)=bbox(3);
 %     
 %     switch camera
@@ -96,67 +136,60 @@ while 1
 %     end
 %     figure(11)
 %     imshow(roi)
-    %%
             
-    % éãç∑åvéZ
-    dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera); % bbox??????????????
-    
-    
-    
-    % ç¿ïWÇí≤êÆ
-    xyzPoints = reconstructScene(dispMap,stereoParams{camera});
-    xyzPoints=relocate(xyzPoints,stereoParams,camera);
-    
-    
-    % PointCloud
-%         ptCloud=pointCloud(xyzPoints);
-%         figure(1);
-%         pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
-%         title('ptCloud');
-%         drawnow
-    
-    % ÉmÉCÉYèúãé
+    % bboxÈ†òÂüü„ÅÆË¶ñÂ∑ÆË®àÁÆó
+    dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
     xyzPoints=denoise(xyzPoints);
+
+    % „Ç´„É°„É©„Å´Âøú„Åò„Å¶3Ê¨°ÂÖÉÂ∫ßÊ®ô„ÇíË™øÊï¥
+    xyzPoints=relocate(xyzPoints,stereoParams,camera);
+
+    % ptCloud„Å´Â§âÊèõ
     ptCloud=pointCloud(xyzPoints);
 %     figure(1);
 %     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 %     title('ptCloud');
 %     drawnow
     
+    
     %% registration
-    if frameIdx==1
-        ptCloudScene=ptCloud;
-        tform=affine3d;
+    mergeSize=2;
+    
+    new = pcdownsample(ptCloud, 'random', 0.1);
+    tform = pcregrigid(new, f, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform);
+    
+    B=tform.T(1:3,1:3)';
+    
+    [alpha,beta,gamma]=kakudo(B);
+    
+    alphas(frameIdx)=alpha;
+    betas(frameIdx)=beta;
+    gammas(frameIdx)=gamma;
+    
+    if beta>maxYaw
+        faceMaxYaw = pctransform(ptCloud, tform);
+        faceMearge=merge(faceMaxYaw, faceMinYaw, mergeSize);
+        face=merge(face0, faceMearge, mergeSize);
+        f = pcdownsample(face, 'random', 0.1);
+        maxYaw=beta;
+    end
+    if beta<minYaw
+        faceMinYaw = pctransform(ptCloud, tform);
+        faceMearge=merge(faceMaxYaw, faceMinYaw, mergeSize);
+        face=merge(face0, faceMearge, mergeSize);
+        f = pcdownsample(face, 'random', 0.1);
+        minYaw=beta;
+    end
+    
+    if beta>0
+        camera=1;
     else
-        fixed = pcdownsample(ptCloudScene, 'random', 0.1);
-        moving = pcdownsample(ptCloud, 'random', 0.1);
-        
-        tform = pcregrigid(moving, fixed, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform);
-        ptCloudAligned = pctransform(moving, tform);
-        mergeSize=2;
-%         ptCloudScene = pcmerge(ptCloudScene, ptCloudAligned, mergeSize);
-        
-        B=tform.T(1:3,1:3)';
-        
-        alpha_hat_=-atan(B(3,2)/B(3,3))/pi*180;
-        beta_hat_=--asin(B(3,1))/pi*180;
-        gamma_hat_=-atan(B(2,1)/B(1,1))/pi*180;
-        
-        alpha_hat(frameIdx)=alpha_hat_;
-        beta_hat(frameIdx)=beta_hat_;
-        gamma_hat(frameIdx)=gamma_hat_;
-        
-        if beta_hat_>0
-            camera=1;
-        else
-            camera=2;
-        end
+        camera=2;
     end
     %
     %
     %
-    %
-    %     %% ämîF
+    %     %% Á¢∫Ë™ç
     %     % ROI
     %     figure(1)
     %     ROI=imgL(eyeBbox(2):faceBbox(2)+faceBbox(4),eyeBbox(1):eyeBbox(1)+eyeBbox(3),:);
@@ -191,11 +224,19 @@ while 1
     end
 end
 
-%% å„èàóù
+%% ÂæåÂá¶ÁêÜ
 figure(99);
-pcshow(ptCloudScene, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
-title('ptCloudScene');
+pcshow(face, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+title('face');
 
-figure(98)
-plot(beta_hat)
-title('beta_hat')
+figure(98);
+pcshow(faceMaxYaw, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+title('faceMaxYaw');
+
+figure(97);
+pcshow(faceMinYaw, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+title('faceMinYaw');
+
+figure(96)
+plot(betas)
+title('betas')
