@@ -3,12 +3,12 @@ clear
 clc
 
 % グローバル座標系で左カメラの位置を原点とする
-% すべての3次元復元結果は左カメラを原点として保存される
+% すべての3次元復元結果は左カメラを原点とする
 
 % フレームごとに処理の基準となるカメラを選択し、切り替える
 % ヨー角度の符号は首を右に振る方向が正、左に振る方向が負
-% ヨー角度が正...右カメラを基準とする
-% ヨー角度が負...左カメラを基準とする
+% ヨー角度が正...右カメラ画像を使用
+% ヨー角度が負...左カメラ画像を使用
 
 %% 前処理
 % ループ処理の前に1度だけ実行する処理
@@ -158,10 +158,9 @@ while 1
     new = pcdownsample(ptCloud, 'random', 0.1);
     tform = pcregrigid(new, f, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform);
     
+    % 角度
     B=tform.T(1:3,1:3)';
-    
     [alpha,beta,gamma]=kakudo(B);
-    
     alphas(frameIdx)=alpha;
     betas(frameIdx)=beta;
     gammas(frameIdx)=gamma;
@@ -186,10 +185,9 @@ while 1
     else
         camera=2;
     end
-    %
-    %
-    %
-    %     %% 確認
+    
+    
+    %% 確認
     %     % ROI
     %     figure(1)
     %     ROI=imgL(eyeBbox(2):faceBbox(2)+faceBbox(4),eyeBbox(1):eyeBbox(1)+eyeBbox(3),:);
@@ -206,18 +204,7 @@ while 1
     %         pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
     %         title('ptCloud');
     %         drawnow
-    %     %
-    
-%     
-%         figure(1);
-%         pcshow(ptCloudScene, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
-%         title('ptCloudScene');
-%         drawnow('limitrate')
 
-% figure(20)
-% plot(beta_hat)
-% drawnow
-%     
     
     if EOF
         break
@@ -230,13 +217,17 @@ pcshow(face, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 title('face');
 
 figure(98);
-pcshow(faceMaxYaw, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+pcshow(face0, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 title('faceMaxYaw');
 
 figure(97);
+pcshow(faceMaxYaw, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+title('faceMaxYaw');
+
+figure(96);
 pcshow(faceMinYaw, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 title('faceMinYaw');
 
-figure(96)
+figure(95)
 plot(betas)
 title('betas')
