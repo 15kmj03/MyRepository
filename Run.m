@@ -2,24 +2,24 @@ close all
 clear
 clc
 
-% ã‚°ãƒ­ãƒ¼ãƒãƒ«åº§æ¨™ç³»ã§å·¦ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã‚’åŸç‚¹ã¨ã™ã‚‹
-% ã™ã¹ã¦ã®3æ¬¡å…ƒå¾©å…ƒçµæœã¯å·¦ã‚«ãƒ¡ãƒ©ã‚’åŸç‚¹ã¨ã™ã‚‹
+% ƒOƒ[ƒoƒ‹À•WŒn‚Å¶ƒJƒƒ‰‚ÌˆÊ’u‚ğŒ´“_‚Æ‚·‚é
+% ‚·‚×‚Ä‚Ì3ŸŒ³•œŒ³Œ‹‰Ê‚Í¶ƒJƒƒ‰‚ğŒ´“_‚Æ‚·‚é
 
-% ãƒ•ãƒ¬ãƒ¼ãƒ ã”ã¨ã«å‡¦ç†ã®åŸºæº–ã¨ãªã‚‹ã‚«ãƒ¡ãƒ©ã‚’é¸æŠã—ã€åˆ‡ã‚Šæ›¿ãˆã‚‹
-% ãƒ¨ãƒ¼è§’åº¦ã®ç¬¦å·ã¯é¦–ã‚’å³ã«æŒ¯ã‚‹æ–¹å‘ãŒæ­£ã€å·¦ã«æŒ¯ã‚‹æ–¹å‘ãŒè² 
-% ãƒ¨ãƒ¼è§’åº¦ãŒæ­£...å³ã‚«ãƒ¡ãƒ©ç”»åƒã‚’ä½¿ç”¨
-% ãƒ¨ãƒ¼è§’åº¦ãŒè² ...å·¦ã‚«ãƒ¡ãƒ©ç”»åƒã‚’ä½¿ç”¨
+% ƒtƒŒ[ƒ€‚²‚Æ‚Éˆ—‚ÌŠî€‚Æ‚È‚éƒJƒƒ‰‚ğ‘I‘ğ‚µAØ‚è‘Ö‚¦‚é
+% ƒˆ[Šp“x‚Ì•„†‚Íñ‚ğ‰E‚ÉU‚é•ûŒü‚ª³A¶‚ÉU‚é•ûŒü‚ª•‰
+% ƒˆ[Šp“x‚ª³...‰EƒJƒƒ‰‰æ‘œ‚ğg—p
+% ƒˆ[Šp“x‚ª•‰...¶ƒJƒƒ‰‰æ‘œ‚ğg—p
 
-%% å‰å‡¦ç†
-% ãƒ«ãƒ¼ãƒ—å‡¦ç†ã®å‰ã«1åº¦ã ã‘å®Ÿè¡Œã™ã‚‹å‡¦ç†
+%% ‘Oˆ—
+% ƒ‹[ƒvˆ—‚Ì‘O‚É1“x‚¾‚¯Às‚·‚éˆ—
 
-% å‹•ç”»èª­ã¿è¾¼ã¿
+% “®‰æ“Ç‚İ‚İ
 videoFileReader=vision.VideoFileReader('D:arai\1.avi','VideoOutputDataType','uint8');
 
-% ã‚¹ãƒ†ãƒ¬ã‚ªãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼ã®èª­ã¿è¾¼ã¿
+% ƒXƒeƒŒƒIƒpƒ‰ƒ[ƒ^[‚Ì“Ç‚İ‚İ
 load('stereoParams');
 
-% æ¤œå‡ºå™¨ã®èª­ã¿è¾¼ã¿
+% ŒŸoŠí‚Ì“Ç‚İ‚İ
 frontalFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
     'FrontalFaceCART', 'MinSize',[200,200],'MaxSize',[400,400]);
 profileFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
@@ -27,59 +27,59 @@ profileFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
 eyeDetector = vision.CascadeObjectDetector('ClassificationModel',...
     'EyePairBig', 'MinSize',[11,45],'MaxSize',[400,400],'UseROI',true);
 
-% ãƒ‡ãƒ¼ã‚¿ä¿å­˜ç”¨ã®å¤‰æ•°
+% ƒf[ƒ^•Û‘¶—p‚Ì•Ï”
 alphas=zeros(200,1);
 betas=zeros(200,1);
 gammas=zeros(200,1);
 maxYaw=0;
 minYaw=0;
 
-% ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+% ƒtƒŒ[ƒ€ƒCƒ“ƒfƒbƒNƒX
 frameIdx=0;
 
-%% æœ€åˆã®1ãƒ•ãƒ¬ãƒ¼ãƒ 
+% Å‰‚Ì1ƒtƒŒ[ƒ€
 camera=1;
 
 [rawStereoImg,EOF]=step(videoFileReader);
 frameIdx=frameIdx+1;
 disp(frameIdx)
 
-% ã‚¹ãƒ†ãƒ¬ã‚ªç”»åƒã®æ­ªã¿è£œæ­£ã¨å¹³è¡ŒåŒ–
+% ƒXƒeƒŒƒI‰æ‘œ‚Ì˜c‚İ•â³‚Æ•½s‰»
 [imgL,imgR]=undistortAndRectifyStereoImage(rawStereoImg,stereoParams,camera);
 
-% ã‚°ãƒ¬ãƒ¼ã‚¹ã‚±ãƒ¼ãƒ«å¤‰æ›
+% ƒOƒŒ[ƒXƒP[ƒ‹•ÏŠ·
 grayR=rgb2gray(imgR);
 grayL=rgb2gray(imgL);
 
-% é¡”æ¤œå‡º
+% ŠçŒŸo
 faceBbox=detectFaceBbox(grayL,grayR,frontalFaceDetector,profileFaceDetector,camera);
 if isempty(faceBbox)
     disp('error')
 end
 
-% ä¸¡ç›®é ˜åŸŸã‚’æ¤œå‡º
+% —¼–Ú—Ìˆæ‚ğŒŸo
 eyeBbox=detectEyeBbox(grayL,grayR,eyeDetector,faceBbox,camera);
 if isempty(bbox)
     disp('error')
 end
 
-% 3æ¬¡å…ƒå¾©å…ƒã‚’è¡Œã†é ˜åŸŸã‚’æ±ºå®šã™ã‚‹
+% 3ŸŒ³•œŒ³‚ğs‚¤—Ìˆæ‚ğŒˆ’è‚·‚é
 bbox=func(eyeBbox,width,camera);
 
-% minDisparityã®æ±ºå®š
+% minDisparity‚ÌŒˆ’è
 minDisparity=determineMinDisparity(grayL,grayR,bbox);
 
-% bboxé ˜åŸŸã®è¦–å·®è¨ˆç®—
+% bbox—Ìˆæ‚Ì‹·ŒvZ
 dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
 
-% 3æ¬¡å…ƒåº§æ¨™ã«å¤‰æ›
+% 3ŸŒ³À•W‚É•ÏŠ·
 xyzPoints = reconstructScene(dispMap,stereoParams{camera});
 xyzPoints=denoise(xyzPoints);
 
-% ã‚«ãƒ¡ãƒ©ã«å¿œã˜ã¦3æ¬¡å…ƒåº§æ¨™ã‚’èª¿æ•´
+% ƒJƒƒ‰‚É‰‚¶‚Ä3ŸŒ³À•W‚ğ’²®
 xyzPoints=relocate(xyzPoints,stereoParams,camera);
 
-% ptCloudã«å¤‰æ›
+% ptCloud‚É•ÏŠ·
 ptCloud=pointCloud(xyzPoints);
 
 face0=ptCloud;
@@ -90,41 +90,41 @@ f = pcdownsample(face, 'random', 0.1);
 
 tform=affine3d;
 
-% è§’åº¦
+% Šp“x
 alphas(frameIdx)=0;
 beat_hat(frameIdx)=0;
 gammas(frameIdx)=0;
 
 
 
-%% ãƒ«ãƒ¼ãƒ—å‡¦ç†
-% è§’åº¦ã®æ¨å®šã‚’è¡Œã†
+%% ƒ‹[ƒvˆ—
+% Šp“x‚Ì„’è‚ğs‚¤
 while 1
-    % 1ãƒ•ãƒ¬ãƒ¼ãƒ èª­ã¿è¾¼ã¿
+    % 1ƒtƒŒ[ƒ€“Ç‚İ‚İ
     [rawStereoImg,EOF]=step(videoFileReader);
     frameIdx=frameIdx+1;
     disp(frameIdx)
     
-    % ã‚¹ãƒ†ãƒ¬ã‚ªç”»åƒã®æ­ªã¿è£œæ­£ã¨å¹³è¡ŒåŒ–
+    % ƒXƒeƒŒƒI‰æ‘œ‚Ì˜c‚İ•â³‚Æ•½s‰»
     [imgL,imgR]=undistortAndRectifyStereoImage(rawStereoImg,stereoParams,camera);
     
-    % ã‚°ãƒ¬ãƒ¼ã‚¹ã‚±ãƒ¼ãƒ«å¤‰æ›
+    % ƒOƒŒ[ƒXƒP[ƒ‹•ÏŠ·
     grayR=rgb2gray(imgR);
     grayL=rgb2gray(imgL);
     
-    % é¡”æ¤œå‡º
+    % ŠçŒŸo
     faceBbox=detectFaceBbox(grayL,grayR,frontalFaceDetector,profileFaceDetector,camera);
     if isempty(faceBbox)
         continue
     end
     
-    % ä¸¡ç›®é ˜åŸŸã‚’æ¤œå‡º
+    % —¼–Ú—Ìˆæ‚ğŒŸo
     eyeBbox=detectEyeBbox(grayL,grayR,eyeDetector,faceBbox,camera);
     if isempty(bbox)
         continue
     end
 
-    % 3æ¬¡å…ƒå¾©å…ƒã‚’è¡Œã†é ˜åŸŸã‚’æ±ºå®šã™ã‚‹
+    % 3ŸŒ³•œŒ³‚ğs‚¤—Ìˆæ‚ğŒˆ’è‚·‚é
     bbox=func(eyeBbox,width,camera);
 %     width(frameIdx)=bbox(3);
 %     
@@ -137,14 +137,14 @@ while 1
 %     figure(11)
 %     imshow(roi)
             
-    % bboxé ˜åŸŸã®è¦–å·®è¨ˆç®—
+    % bbox—Ìˆæ‚Ì‹·ŒvZ
     dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
     xyzPoints=denoise(xyzPoints);
 
-    % ã‚«ãƒ¡ãƒ©ã«å¿œã˜ã¦3æ¬¡å…ƒåº§æ¨™ã‚’èª¿æ•´
+    % ƒJƒƒ‰‚É‰‚¶‚Ä3ŸŒ³À•W‚ğ’²®
     xyzPoints=relocate(xyzPoints,stereoParams,camera);
 
-    % ptCloudã«å¤‰æ›
+    % ptCloud‚É•ÏŠ·
     ptCloud=pointCloud(xyzPoints);
 %     figure(1);
 %     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
@@ -158,7 +158,7 @@ while 1
     new = pcdownsample(ptCloud, 'random', 0.1);
     tform = pcregrigid(new, f, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform);
     
-    % è§’åº¦
+    % Šp“x
     B=tform.T(1:3,1:3)';
     [alpha,beta,gamma]=kakudo(B);
     alphas(frameIdx)=alpha;
@@ -187,7 +187,7 @@ while 1
     end
     
     
-    %% ç¢ºèª
+    %% Šm”F
     %     % ROI
     %     figure(1)
     %     ROI=imgL(eyeBbox(2):faceBbox(2)+faceBbox(4),eyeBbox(1):eyeBbox(1)+eyeBbox(3),:);
@@ -211,7 +211,7 @@ while 1
     end
 end
 
-%% å¾Œå‡¦ç†
+%% Œãˆ—
 figure(99);
 pcshow(face, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 title('face');
