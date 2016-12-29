@@ -10,6 +10,7 @@ function [ ROI ] = bbox2ROI( img,bbox )
 %   output
 %   ROI : region of interest
 
+%%
 x=bbox(1);  % x
 y=bbox(2);  % y
 w=bbox(3);  % width

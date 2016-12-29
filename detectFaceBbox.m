@@ -1,6 +1,18 @@
 function [ faceBbox ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,profileFaceDetector,camera )
-%DETECTFACE この関数の概要をここに記述
-%   詳細説明をここに記述
+%DETECTFACE 顔領域を検出する
+%
+%   [ faceBbox ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,profileFaceDetector,camera )
+%
+%   input
+%   grayL : 左グレー画像
+%   grayR : 右グレー画像
+%   frontalFaceDetector : 顔検出器
+%   profileFaceDetector : 横顔検出器
+%   camera : カメラ番号
+%
+%   output
+%   faceBbox : 顔領域
+
 
 %% 顔検出
 % 顔検出を行う
@@ -33,7 +45,6 @@ switch camera
         end
     otherwise
         disp('error')
-        quit
 end
 
 end

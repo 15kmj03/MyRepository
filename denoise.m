@@ -2,7 +2,7 @@ function [ xyzPoints ] = denoise( xyzPoints )
 %DENOISE この関数の概要をここに記述
 %   詳細説明をここに記述
 
-%     % ノイズ除去
+%% ノイズ除去
 Xdata=xyzPoints(:,:,1);
 Ydata=xyzPoints(:,:,2);
 Zdata=xyzPoints(:,:,3);
