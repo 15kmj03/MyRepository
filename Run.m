@@ -18,7 +18,9 @@ clc
 % ループ処理の前に1度だけ実行する処理
 
 % 動画読み込み
-videoFileReader=vision.VideoFileReader('D:tanimoto\3.avi',...
+% videoFileReader=vision.VideoFileReader('D:tanimoto\4.avi',...
+%     'VideoOutputDataType', 'uint8');
+videoFileReader=vision.VideoFileReader('D:1226\30deg\arai\2.mp4',...
     'VideoOutputDataType', 'uint8');
 
 % ステレオパラメーター読み込み
@@ -71,6 +73,7 @@ end
 % 3次元復元を行う領域を決定する
 width = eyeBbox(3);
 bbox = func(eyeBbox, width, camera);
+bbox(2)=bbox(2)-30;
 
 % minDisparityの決定
 minDisparity = determineMinDisparity(grayL, grayR, bbox);
@@ -92,11 +95,10 @@ ptCloud = pointCloud(xyzPoints);
 %             title('ptCloud');
 %             drawnow
 
-face0 = ptCloud;
+face0 = pcdownsample(ptCloud, 'random', 0.05);
 faceMaxYaw = pointCloud([NaN,NaN,NaN]);
 faceMinYaw = pointCloud([NaN,NaN,NaN]);
 face = face0;
-f = pcdownsample(face, 'random', 0.1);
 
 tform = affine3d;
 
@@ -110,19 +112,19 @@ gammas(frameIdx) = 0;
 %% ループ処理
 % 角度の推定を行う
 while 1
-    tic
+tic
     % 1フレーム読み込み
     [rawStereoImg,EOF]=step(videoFileReader);
     frameIdx=frameIdx+1;
     disp(frameIdx)
-    
+
     % ステレオ画像の歪み補正と平行化
     [imgL,imgR]=undistortAndRectifyStereoImage(rawStereoImg,stereoParams,camera);
     
     % グレースケール変換
     grayR=rgb2gray(imgR);
     grayL=rgb2gray(imgL);
-    
+
     % 顔検出
     faceBbox=detectFaceBbox(grayL,grayR,frontalFaceDetector,profileFaceDetector,camera);
     if isempty(faceBbox)
@@ -137,6 +139,7 @@ while 1
     
     % 3次元復元を行う領域を決定する
     bbox=func(eyeBbox,width,camera);
+    bbox(2)=bbox(2)-30;
     %     width(frameIdx)=bbox(3);
     %
     %     switch camera
@@ -165,12 +168,11 @@ while 1
     %     title('ptCloud');
     %     drawnow
     
-    
     %% registration
-    mergeSize=2;
+    mergeSize=3;
     
-    new = pcdownsample(ptCloud, 'random', 0.1);
-    tform = pcregrigid(new, f, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform,'MaxIterations',20);
+    new = pcdownsample(ptCloud, 'random', 0.05);
+    tform = pcregrigid(new, face, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform,'MaxIterations',20);
     
     % 角度
     R=tform.T(1:3,1:3)';
@@ -182,19 +184,19 @@ while 1
     if beta>maxYaw
         xyzPoints=refine(xyzPoints);
         ptCloud=pointCloud(xyzPoints);
+        ptCloud = pcdownsample(ptCloud, 'random', 0.05);
         faceMaxYaw = pctransform(ptCloud, tform);
         faceMearge=pcmerge(faceMaxYaw, faceMinYaw, mergeSize);
         face=pcmerge(face0, faceMearge, mergeSize);
-        f = pcdownsample(face, 'random', 0.1);
         maxYaw=beta;
     end
     if beta<minYaw
         xyzPoints=refine(xyzPoints);
         ptCloud=pointCloud(xyzPoints);
+        ptCloud = pcdownsample(ptCloud, 'random', 0.05);
         faceMinYaw = pctransform(ptCloud, tform);
         faceMearge=pcmerge(faceMaxYaw, faceMinYaw, mergeSize);
         face=pcmerge(face0, faceMearge, mergeSize);
-        f = pcdownsample(face, 'random', 0.1);
         minYaw=beta;
     end
     
@@ -228,7 +230,7 @@ while 1
     if EOF
         break
     end
-    toc
+toc
 end
 
 %% 後処理
