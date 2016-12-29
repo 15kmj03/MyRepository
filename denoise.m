@@ -1,15 +1,24 @@
 function [ xyzPoints ] = denoise( xyzPoints )
-%DENOISE この関数の概要をここに記述
-%   詳細説明をここに記述
+%DENOISE 点群のノイズを除去する
+%   Z座標の標準偏差を計算し、-2sigamから+2sigma以内の点だけを残す
+%
+%   [ xyzPoints ] = denoise( xyzPoints )
+%
+%   input
+%   xyzPoints : 3次元座標
+%
+%   output
+%   xyzPoints : 3次元座標
 
-%% ノイズ除去
+%%
 Xdata=xyzPoints(:,:,1);
 Ydata=xyzPoints(:,:,2);
 Zdata=xyzPoints(:,:,3);
 
-s=nansum(Zdata(:));
-g=s/sum(sum(~isnan(Zdata)));
-bw=g-100<Zdata&Zdata<g+100;
+S=nanstd(Zdata(:));
+M=nanmean(Zdata(:));
+
+bw=M-2*S<Zdata&Zdata<M+2*S;
 
 Xdata(~bw)=nan;
 xyzPoints(:,:,1)=Xdata;

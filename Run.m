@@ -14,7 +14,7 @@ clc
 % ループ処理の前に1度だけ実行する処理
 
 % 動画読み込み
-videoFileReader=vision.VideoFileReader('D:arai\1.avi','VideoOutputDataType','uint8');
+videoFileReader=vision.VideoFileReader('D:1226\30deg\arai\1.mp4','VideoOutputDataType','uint8');
 
 % ステレオパラメーター読み込み
 load('stereoParams');
@@ -73,6 +73,7 @@ dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
 
 % 3次元座標に変換
 xyzPoints = reconstructScene(dispMap,stereoParams{camera});
+
 xyzPoints=denoise(xyzPoints);
 
 % カメラに応じて3次元座標を調整
@@ -80,6 +81,10 @@ xyzPoints=relocate(xyzPoints,stereoParams,camera);
 
 % ptCloudに変換
 ptCloud=pointCloud(xyzPoints);
+%             figure(2);
+%             pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+%             title('ptCloud');
+%             drawnow
 
 face0=ptCloud;
 faceMaxYaw=pointCloud([NaN,NaN,NaN]);
@@ -149,10 +154,10 @@ while 1
     
     % ptCloudに変換
     ptCloud=pointCloud(xyzPoints);
-%     figure(1);
-%     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
-%     title('ptCloud');
-%     drawnow
+    figure(1);
+    pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+    title('ptCloud');
+    drawnow
     
     
     %% registration
@@ -203,10 +208,10 @@ while 1
     %     title('dispMap')
     
     % ptCloud
-    %         figure(2);
-    %         pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
-    %         title('ptCloud');
-    %         drawnow
+%             figure(2);
+%             pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+%             title('ptCloud');
+%             drawnow
     
     
     if EOF
