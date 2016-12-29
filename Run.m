@@ -10,11 +10,15 @@ clc
 % ヨー角度が正...右カメラ画像を使用
 % ヨー角度が負...左カメラ画像を使用
 
+% windowsでvision.VideoFileReaderを使用してmp4ファイルを読み込むとき、
+% matlab.video.read.UseHardwareAcceleration('off')を実行したほうが
+% 高速になることがある
+
 %% 前処理
 % ループ処理の前に1度だけ実行する処理
 
 % 動画読み込み
-videoFileReader=vision.VideoFileReader('D:1226\30deg\arai\1.mp4','VideoOutputDataType','uint8');
+videoFileReader=vision.VideoFileReader('D:1226\30deg\nagaoka\1.mp4','VideoOutputDataType','uint8');
 
 % ステレオパラメーター読み込み
 load('stereoParams');
@@ -52,13 +56,13 @@ grayL=rgb2gray(imgL);
 % 顔検出
 faceBbox=detectFaceBbox(grayL,grayR,frontalFaceDetector,profileFaceDetector,camera);
 if isempty(faceBbox)
-    disp('error')
+    error('error')
 end
 
 % 両目領域を検出
 eyeBbox=detectEyeBbox(grayL,grayR,eyeDetector,faceBbox,camera);
 if isempty(eyeBbox)
-    disp('error')
+    error('error')
 end
 
 % 3次元復元を行う領域を決定する
@@ -73,7 +77,6 @@ dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
 
 % 3次元座標に変換
 xyzPoints = reconstructScene(dispMap,stereoParams{camera});
-
 xyzPoints=denoise(xyzPoints);
 
 % カメラに応じて3次元座標を調整
@@ -144,7 +147,7 @@ while 1
     
     % bbox領域の視差計算
     dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
-    
+
     % 3次元座標に変換
     xyzPoints = reconstructScene(dispMap,stereoParams{camera});
     xyzPoints=denoise(xyzPoints);
@@ -154,10 +157,10 @@ while 1
     
     % ptCloudに変換
     ptCloud=pointCloud(xyzPoints);
-    figure(1);
-    pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
-    title('ptCloud');
-    drawnow
+%     figure(1);
+%     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+%     title('ptCloud');
+%     drawnow
     
     
     %% registration
@@ -167,8 +170,8 @@ while 1
     tform = pcregrigid(new, f, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform,'MaxIterations',10);
     
     % 角度
-    B=tform.T(1:3,1:3)';
-    [alpha,beta,gamma]=Kakudo(B);
+    R=tform.T(1:3,1:3)';
+    [alpha,beta,gamma]=Kakudo(R);
     alphas(frameIdx)=alpha;
     betas(frameIdx)=beta;
     gammas(frameIdx)=gamma;
@@ -212,6 +215,7 @@ while 1
 %             pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 %             title('ptCloud');
 %             drawnow
+
     
     
     if EOF
@@ -224,18 +228,22 @@ end
 figure(99);
 pcshow(face, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 title('face');
+drawnow
 
 figure(98);
 pcshow(face0, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 title('face0');
+drawnow
 
 figure(97);
 pcshow(faceMaxYaw, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 title('faceMaxYaw');
+drawnow
 
 figure(96);
 pcshow(faceMinYaw, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
 title('faceMinYaw');
+drawnow
 
 figure(95)
 plot(betas)

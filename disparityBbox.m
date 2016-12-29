@@ -2,13 +2,13 @@ function [ disparityMap ] = disparityBbox( grayL, grayR, bbox, minDisparity, cam
 %DISPARITYBBOX 左カメラ画像で検出されたBbox領域内の視差を計算する
 %
 %   [ disparityMap ] = disparityBbox( imgL, imgR, bbox, dispRange )
-%   
+%
 %   input
 %   imgL : 左カメラ画像
 %   imgR : 右カメラ画像
 %   bbox : 顔領域
 %   dispRange : 視差計算範囲
-%   
+%
 %   output
 %   disparityMap : 視差画像
 
@@ -40,6 +40,7 @@ switch camera
         dispMapROI=single(dispMapROI)/16;
         disparityMap(y:y+h,x:x+w)=dispMapROI(:,1:1+w);
     otherwise
+        error('error')
 end
 
 % disparityMap=medfilt2(disparityMap,[7,7]);

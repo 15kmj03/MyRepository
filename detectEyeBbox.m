@@ -29,7 +29,7 @@ switch camera
             eyeBbox=[eyeBbox(1),eyeBbox(2),eyeBbox(3),eyeBbox(4)+faceBbox(4)-(eyeBbox(2)-faceBbox(2)+eyeBbox(4))];
         end
     otherwise
-        disp('error')
+        error('error')
 end
 
 end

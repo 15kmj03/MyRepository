@@ -13,6 +13,7 @@ switch camera
             bbox(1)=1;
         end
     otherwise
+        error('error')
 end
 
 end

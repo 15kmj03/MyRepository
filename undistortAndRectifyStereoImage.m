@@ -27,7 +27,7 @@ switch camera
         params=stereoParams{2};
         [imgR,imgL] = rectifyStereoImages(rawR, rawL, params, 'OutputView', 'valid');
     otherwise
-        disp('error')
+        error('error')
 end
 
 end

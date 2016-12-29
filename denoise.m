@@ -15,9 +15,12 @@ Xdata=xyzPoints(:,:,1);
 Ydata=xyzPoints(:,:,2);
 Zdata=xyzPoints(:,:,3);
 
+% •W€•Î·
 S=nanstd(Zdata(:));
+% •½‹Ï
 M=nanmean(Zdata(:));
 
+% c‚·“_ŒQ
 bw=M-2*S<Zdata&Zdata<M+2*S;
 
 Xdata(~bw)=nan;

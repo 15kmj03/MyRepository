@@ -11,7 +11,7 @@ function [ faceBbox ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,profileF
 %   camera : ƒJƒƒ‰”Ô†
 %
 %   output
-%   faceBbox : Šç—Ìˆæ
+%   faceBbox : Šç—Ìˆæ [x,y,width,height]
 
 
 %% ŠçŒŸo
@@ -44,7 +44,7 @@ switch camera
             end
         end
     otherwise
-        disp('error')
+        error('error')
 end
 
 end
