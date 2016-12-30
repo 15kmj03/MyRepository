@@ -42,9 +42,10 @@ readFrameTime = zeros(300, 1);
 undistortTime = zeros(300, 1);
 grayTime = zeros(300, 1);
 detectTime = zeros(300, 1);
-dispTime = zeros(300, 1);
+disparityTime = zeros(300, 1);
 xyzPointsTime = zeros(300, 1);
 ptCloudTime = zeros(300, 1);
+regTime = zeros(300, 1);
 maxYaw = 0;
 minYaw = 0;
 
@@ -169,7 +170,7 @@ while 1
     % bbox—Ìˆæ‚ÌŽ‹·ŒvŽZ
     tic
     dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
-    dispTime(frameIdx)=toc;
+    disparityTime(frameIdx)=toc;
     
     % 3ŽŸŒ³À•W‚É•ÏŠ·
     tic
@@ -190,10 +191,11 @@ while 1
     %     drawnow
     
     %% registration
+    tic
     mergeSize=3;
     
     new = pcdownsample(ptCloud, 'random', 0.05);
-    tform = pcregrigid(new, face, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform,'MaxIterations',20);
+    tform = pcregrigid(new, face, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform,'MaxIterations',10,'InlierRatio',0.5);
     
     % Šp“x
     R=tform.T(1:3,1:3)';
@@ -220,7 +222,7 @@ while 1
         face=pcmerge(face0, faceMearge, mergeSize);
         minYaw=beta;
     end
-    
+    regTime(frameIdx)=toc;
     if beta>0
         camera=1;
     else
