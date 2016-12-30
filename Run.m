@@ -38,14 +38,6 @@ eyeDetector = vision.CascadeObjectDetector('ClassificationModel',...
 alphas = zeros(300, 1);
 betas = zeros(300, 1);
 gammas = zeros(300, 1);
-readFrameTime = zeros(300, 1);
-undistortTime = zeros(300, 1);
-grayTime = zeros(300, 1);
-detectTime = zeros(300, 1);
-disparityTime = zeros(300, 1);
-xyzPointsTime = zeros(300, 1);
-ptCloudTime = zeros(300, 1);
-regTime = zeros(300, 1);
 maxYaw = 0;
 minYaw = 0;
 
@@ -120,27 +112,20 @@ gammas(frameIdx) = 0;
 %% ループ処理
 % 角度の推定を行う
 while 1
-
+tic
     % 1フレーム読み込み
-    tic
     [rawStereoImg,EOF]=step(videoFileReader);
     frameIdx=frameIdx+1;
     disp(frameIdx)
-    readFrameTime(frameIdx)=toc;
 
     % ステレオ画像の歪み補正と平行化
-    tic
     [imgL,imgR]=undistortAndRectifyStereoImage(rawStereoImg,stereoParams,camera);
-    undistortTime(frameIdx)=toc;
     
     % グレースケール変換
-    tic
     grayR=rgb2gray(imgR);
     grayL=rgb2gray(imgL);
-    grayTime(frameIdx)=toc;
 
     % 顔検出
-    tic
     faceBbox=detectFaceBbox(grayL,grayR,frontalFaceDetector,profileFaceDetector,camera);
     if isempty(faceBbox)
         continue
@@ -151,7 +136,6 @@ while 1
     if isempty(eyeBbox)
         continue
     end
-    detectTime(frameIdx)=toc;
     
     % 3次元復元を行う領域を決定する
     bbox=func(eyeBbox,width,camera);
@@ -168,30 +152,23 @@ while 1
     %     imshow(roi)
     
     % bbox領域の視差計算
-    tic
     dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
-    disparityTime(frameIdx)=toc;
     
     % 3次元座標に変換
-    tic
     xyzPoints = reconstructScene(dispMap,stereoParams{camera});
     xyzPoints=denoise(xyzPoints);
     
     % カメラに応じて3次元座標を調整
     xyzPoints=relocate(xyzPoints,stereoParams,camera);
-    xyzPointsTime(frameIdx)=toc;
     
     % ptCloudに変換
-    tic
     ptCloud=pointCloud(xyzPoints);
-    ptCloudTime(frameIdx)=toc;
     %     figure(1);
     %     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
     %     title('ptCloud');
     %     drawnow
     
     %% registration
-    tic
     mergeSize=3;
     
     new = pcdownsample(ptCloud, 'random', 0.05);
@@ -222,7 +199,7 @@ while 1
         face=pcmerge(face0, faceMearge, mergeSize);
         minYaw=beta;
     end
-    regTime(frameIdx)=toc;
+    
     if beta>0
         camera=1;
     else
@@ -253,7 +230,7 @@ while 1
     if EOF
         break
     end
-
+toc
 end
 
 %% 後処理
