@@ -72,7 +72,7 @@ end
 
 % 3次元復元を行う領域を決定する
 width = eyeBbox(3);
-bbox = func(eyeBbox, width, camera);
+bbox = eyeBbox;
 bbox(2)=bbox(2)-30;
 
 % minDisparityの決定
@@ -84,9 +84,6 @@ dispMap = disparityBbox(grayL, grayR, bbox, minDisparity, camera);
 % 3次元座標に変換
 xyzPoints = reconstructScene(dispMap, stereoParams{camera});
 xyzPoints = denoise(xyzPoints);
-
-% カメラに応じて3次元座標を調整
-xyzPoints = relocate(xyzPoints, stereoParams, camera);
 
 % ptCloudに変換
 ptCloud = pointCloud(xyzPoints);
@@ -109,12 +106,21 @@ gammas(frameIdx) = 0;
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[stereoParams,ROI]=modifyStereoParams(stereoParams,faceBbox);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 %% ループ処理
 % 角度の推定を行う
 while 1
 tic
     % 1フレーム読み込み
     [rawStereoImg,EOF]=step(videoFileReader);
+    rawStereoImg=bbox2ROI(rawStereoImg,ROI);
     frameIdx=frameIdx+1;
     disp(frameIdx)
 
