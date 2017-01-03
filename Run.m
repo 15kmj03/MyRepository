@@ -20,7 +20,7 @@ clc
 % 動画読み込み
 % videoFileReader=vision.VideoFileReader('D:tanimoto\4.avi',...
 %     'VideoOutputDataType', 'uint8');
-videoFileReader=vision.VideoFileReader('D:1226\30deg\arai\2.mp4',...
+videoFileReader=vision.VideoFileReader('D:1226\30deg\arai\5.mp4',...
     'VideoOutputDataType', 'uint8');
 
 % ステレオパラメーター読み込み
@@ -34,7 +34,7 @@ frontalFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
 profileFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
     'ProfileFace', 'MinSize', [200,200], 'MaxSize', [400,400]);
 eyeDetector = vision.CascadeObjectDetector('ClassificationModel',...
-    'EyePairBig', 'MinSize', [20,150], 'MaxSize', [400,400], 'UseROI', true);
+    'EyePairBig', 'MinSize', [20,150], 'MaxSize', [200,400], 'UseROI', true);
 
 % データ保存用変数
 alphas = zeros(300, 1);
@@ -106,6 +106,8 @@ alphas(frameIdx) = 0;
 beat_hat(frameIdx) = 0;
 gammas(frameIdx) = 0;
 
+prevDispBbox=dispBbox;
+
 % 画像処理を行う領域を限定する
 % 同時にステレオパラメーターの辻褄を合わせるために画像中心を変更する
 [stereoParams, ROI] = modifyStereoParams(stereoParams, faceBbox);
@@ -134,13 +136,48 @@ while 1
     % 顔検出
     faceBbox=detectFaceBbox(grayL, grayR, frontalFaceDetector,...
         profileFaceDetector, camera);
-    if isempty(faceBbox)
-        continue
-    end
     
     % 両目領域を検出
     eyeBbox = detectEyeBbox(grayL, grayR, eyeDetector, faceBbox, camera);
     if isempty(eyeBbox)
+        
+        % bbox領域の視差計算
+        dispMap = disparityBbox(grayL, grayR, prevDispBbox, minDisparity, camera);
+        
+        % 3次元座標に変換
+        xyzPoints = reconstructScene(dispMap, stereoParams{camera});
+        xyzPoints = denoise(xyzPoints);
+        
+        % カメラに応じて3次元座標を調整
+        xyzPoints = relocate(xyzPoints, stereoParams, camera);
+        
+        % ptCloudに変換
+        ptCloud = pointCloud(xyzPoints);
+        %     figure(1);
+        %     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+        %     title('ptCloud');
+        %     drawnow
+        
+        %% registration
+        
+        new = pcdownsample(ptCloud, 'random', 0.05);
+        tform = pcregrigid(new, face, 'Metric', 'pointToPlane',...
+            'Extrapolate', true, 'InitialTransform', tform,...
+            'MaxIterations', 10, 'InlierRatio', 0.5);
+        
+        % 角度
+        R = tform.T(1:3,1:3)';
+        [alpha, beta, gamma] = R2Deg(R);
+        alphas(frameIdx) = alpha;
+        betas(frameIdx) = beta;
+        gammas(frameIdx) = gamma;
+        
+        if beta > 0
+            camera = 1;
+        else
+            camera = 2;
+        end
+        
         continue
     end
     
@@ -223,7 +260,7 @@ while 1
     %     title('ptCloud');
     %     drawnow
     
-    
+    prevDispBbox=dispBbox;
     
     if EOF
         break
