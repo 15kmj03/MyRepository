@@ -3,7 +3,7 @@ clear
 clc
 
 % グローバル座標系で左カメラの位置を原点とする
-% すべての3次元復元結果は左カメラを原点とする
+% 右手座標系
 
 % フレームごとに処理の基準となるカメラを選択し、切り替える
 % ヨー角度の符号は首を右に振る方向が正、左に振る方向が負
@@ -32,7 +32,7 @@ frontalFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
 profileFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
     'ProfileFace', 'MinSize', [200,200], 'MaxSize', [400,400]);
 eyeDetector = vision.CascadeObjectDetector('ClassificationModel',...
-    'EyePairBig', 'MinSize', [11,45], 'MaxSize', [400,400], 'UseROI', true);
+    'EyePairBig', 'MinSize', [20,150], 'MaxSize', [400,400], 'UseROI', true);
 
 % データ保存用変数
 alphas = zeros(300, 1);
@@ -72,14 +72,13 @@ end
 
 % 3次元復元を行う領域を決定する
 width = eyeBbox(3);
-bbox = eyeBbox;
-bbox(2)=bbox(2)-30;
+dispBbox=determineDispBbox(faceBbox,eyeBbox,width,camera);
 
 % minDisparityの決定
-minDisparity = determineMinDisparity(grayL, grayR, bbox);
+minDisparity = determineMinDisparity(grayL, grayR, dispBbox);
 
 % bbox領域の視差計算
-dispMap = disparityBbox(grayL, grayR, bbox, minDisparity, camera);
+dispMap = disparityBbox(grayL, grayR, dispBbox, minDisparity, camera);
 
 % 3次元座標に変換
 xyzPoints = reconstructScene(dispMap, stereoParams{camera});
@@ -107,9 +106,7 @@ gammas(frameIdx) = 0;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 [stereoParams,ROI]=modifyStereoParams(stereoParams,faceBbox);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -144,8 +141,8 @@ tic
     end
     
     % 3次元復元を行う領域を決定する
-    bbox=func(eyeBbox,width,camera);
-    bbox(2)=bbox(2)-30;
+    dispBbox=determineDispBbox(faceBbox,eyeBbox,width,camera);
+
     %     width(frameIdx)=bbox(3);
     %
     %     switch camera
@@ -158,7 +155,7 @@ tic
     %     imshow(roi)
     
     % bbox領域の視差計算
-    dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
+    dispMap=disparityBbox(grayL,grayR,dispBbox,minDisparity,camera);
     
     % 3次元座標に変換
     xyzPoints = reconstructScene(dispMap,stereoParams{camera});
