@@ -32,6 +32,7 @@ switch camera
                 faceBbox=faceBbox(1,:);
             end
         end
+        
     case 2
         faceBbox=step(frontalFaceDetector,grayR);
         
@@ -43,6 +44,7 @@ switch camera
                 faceBbox=faceBbox(1,:);
             end
         end
+        
     otherwise
         error('error')
 end

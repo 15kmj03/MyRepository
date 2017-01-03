@@ -23,9 +23,11 @@ switch camera
     case 1
         params=stereoParams{1};
         [imgL,imgR] = rectifyStereoImages(rawL, rawR, params, 'OutputView', 'valid');
+        
     case 2
         params=stereoParams{2};
         [imgR,imgL] = rectifyStereoImages(rawR, rawL, params, 'OutputView', 'valid');
+        
     otherwise
         error('error')
 end

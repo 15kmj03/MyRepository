@@ -21,11 +21,13 @@ switch camera
         if ~isempty(eyeBbox)
             eyeBbox=eyeBbox(1,:);
         end
+        
     case 2
         eyeBbox=step(eyeDetector,grayR,faceBbox);
         if ~isempty(eyeBbox)
             eyeBbox=eyeBbox(1,:);
         end
+        
     otherwise
         error('error')
 end
