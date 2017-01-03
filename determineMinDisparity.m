@@ -12,6 +12,8 @@ function [ minDisparity ] = determineMinDisparity( grayL,grayR,bbox )
 %   output
 %   minDisparity : éãç∑ÇÃç≈è¨íl
 
+
+%%
 disp=calculateDisparity(grayL,grayR,bbox);
 minDisparity=disp-(8*4);
     

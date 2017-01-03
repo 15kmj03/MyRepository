@@ -12,6 +12,8 @@ function [ disparityMap ] = disparityBbox( grayL, grayR, bbox, minDisparity, cam
 %   output
 %   disparityMap : ‹·‰æ‘œ
 
+
+%%
 x=bbox(1);  % x
 y=bbox(2);  % y
 w=bbox(3);  % width

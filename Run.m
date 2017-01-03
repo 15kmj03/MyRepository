@@ -3,7 +3,7 @@ clear
 clc
 
 % グローバル座標系で左カメラの位置を原点とする
-% すべての3次元復元結果は左カメラを原点とする
+% 右手座標系
 
 % フレームごとに処理の基準となるカメラを選択し、切り替える
 % ヨー角度の符号は首を右に振る方向が正、左に振る方向が負
@@ -24,6 +24,8 @@ videoFileReader=vision.VideoFileReader('D:1226\30deg\arai\2.mp4',...
     'VideoOutputDataType', 'uint8');
 
 % ステレオパラメーター読み込み
+% stereoParams{1, 1} 1左カメラ 2右カメラ;
+% stereoParams{1, 2} 1右カメラ 2左カメラ;
 load('stereoParams');
 
 % 検出器読み込み
@@ -32,25 +34,26 @@ frontalFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
 profileFaceDetector = vision.CascadeObjectDetector('ClassificationModel',...
     'ProfileFace', 'MinSize', [200,200], 'MaxSize', [400,400]);
 eyeDetector = vision.CascadeObjectDetector('ClassificationModel',...
-    'EyePairBig', 'MinSize', [11,45], 'MaxSize', [400,400], 'UseROI', true);
+    'EyePairBig', 'MinSize', [20,150], 'MaxSize', [400,400], 'UseROI', true);
 
 % データ保存用変数
-alphas = zeros(200, 1);
-betas = zeros(200, 1);
-gammas = zeros(200, 1);
+alphas = zeros(300, 1);
+betas = zeros(300, 1);
+gammas = zeros(300, 1);
 maxYaw = 0;
 minYaw = 0;
 
 frameIdx = 0;
 camera = 1;
 
+
 % 最初に1フレームを読み込み、点群を得る
-[rawStereoImg, EOF]=step(videoFileReader);
+[rawStereoImg, EOF] = step(videoFileReader);
 frameIdx = frameIdx+1;
 disp(frameIdx)
 
 % ステレオ画像の歪み補正と平行化
-[imgL, imgR]=undistortAndRectifyStereoImage(rawStereoImg,...
+[imgL, imgR] = undistortAndRectifyStereoImage(rawStereoImg,...
     stereoParams, camera);
 
 % グレースケール変換
@@ -72,21 +75,17 @@ end
 
 % 3次元復元を行う領域を決定する
 width = eyeBbox(3);
-bbox = func(eyeBbox, width, camera);
-bbox(2)=bbox(2)-30;
+dispBbox=determineDispBbox(faceBbox, eyeBbox, width, camera, size(imgL));
 
 % minDisparityの決定
-minDisparity = determineMinDisparity(grayL, grayR, bbox);
+minDisparity = determineMinDisparity(grayL, grayR, dispBbox);
 
 % bbox領域の視差計算
-dispMap = disparityBbox(grayL, grayR, bbox, minDisparity, camera);
+dispMap = disparityBbox(grayL, grayR, dispBbox, minDisparity, camera);
 
 % 3次元座標に変換
 xyzPoints = reconstructScene(dispMap, stereoParams{camera});
 xyzPoints = denoise(xyzPoints);
-
-% カメラに応じて3次元座標を調整
-xyzPoints = relocate(xyzPoints, stereoParams, camera);
 
 % ptCloudに変換
 ptCloud = pointCloud(xyzPoints);
@@ -107,103 +106,102 @@ alphas(frameIdx) = 0;
 beat_hat(frameIdx) = 0;
 gammas(frameIdx) = 0;
 
+% 画像処理を行う領域を限定する
+% 同時にステレオパラメーターの辻褄を合わせるために画像中心を変更する
+[stereoParams, ROI] = modifyStereoParams(stereoParams, faceBbox);
 
 
 %% ループ処理
 % 角度の推定を行う
 while 1
-tic
+    tic
     % 1フレーム読み込み
-    [rawStereoImg,EOF]=step(videoFileReader);
-    frameIdx=frameIdx+1;
+    [rawStereoImg, EOF] = step(videoFileReader);
+    frameIdx = frameIdx + 1;
     disp(frameIdx)
-
+    
+    % ROI領域のみを切り取る
+    rawStereoImg = bbox2ROI(rawStereoImg, ROI);
+    
     % ステレオ画像の歪み補正と平行化
-    [imgL,imgR]=undistortAndRectifyStereoImage(rawStereoImg,stereoParams,camera);
+    [imgL, imgR] = undistortAndRectifyStereoImage(rawStereoImg,...
+        stereoParams, camera);
     
     % グレースケール変換
-    grayR=rgb2gray(imgR);
-    grayL=rgb2gray(imgL);
-
+    grayR = rgb2gray(imgR);
+    grayL = rgb2gray(imgL);
+    
     % 顔検出
-    faceBbox=detectFaceBbox(grayL,grayR,frontalFaceDetector,profileFaceDetector,camera);
+    faceBbox=detectFaceBbox(grayL, grayR, frontalFaceDetector,...
+        profileFaceDetector, camera);
     if isempty(faceBbox)
         continue
     end
     
     % 両目領域を検出
-    eyeBbox=detectEyeBbox(grayL,grayR,eyeDetector,faceBbox,camera);
+    eyeBbox = detectEyeBbox(grayL, grayR, eyeDetector, faceBbox, camera);
     if isempty(eyeBbox)
         continue
     end
     
     % 3次元復元を行う領域を決定する
-    bbox=func(eyeBbox,width,camera);
-    bbox(2)=bbox(2)-30;
-    %     width(frameIdx)=bbox(3);
-    %
-    %     switch camera
-    %         case 1
-    %             roi=bbox2ROI(imgL,bbox);
-    %         case 2
-    %             roi=bbox2ROI(imgR,bbox);
-    %     end
-    %     figure(11)
-    %     imshow(roi)
+    dispBbox = determineDispBbox(faceBbox, eyeBbox, width, camera, size(imgL));
     
     % bbox領域の視差計算
-    dispMap=disparityBbox(grayL,grayR,bbox,minDisparity,camera);
+    dispMap = disparityBbox(grayL, grayR, dispBbox, minDisparity, camera);
     
     % 3次元座標に変換
-    xyzPoints = reconstructScene(dispMap,stereoParams{camera});
-    xyzPoints=denoise(xyzPoints);
+    xyzPoints = reconstructScene(dispMap, stereoParams{camera});
+    xyzPoints = denoise(xyzPoints);
     
     % カメラに応じて3次元座標を調整
-    xyzPoints=relocate(xyzPoints,stereoParams,camera);
+    xyzPoints = relocate(xyzPoints, stereoParams, camera);
     
     % ptCloudに変換
-    ptCloud=pointCloud(xyzPoints);
+    ptCloud = pointCloud(xyzPoints);
     %     figure(1);
     %     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
     %     title('ptCloud');
     %     drawnow
     
     %% registration
-    mergeSize=3;
+    mergeSize = 3;
     
     new = pcdownsample(ptCloud, 'random', 0.05);
-    tform = pcregrigid(new, face, 'Metric','pointToPlane','Extrapolate', true,'InitialTransform',tform,'MaxIterations',20);
+    tform = pcregrigid(new, face, 'Metric', 'pointToPlane',...
+        'Extrapolate', true, 'InitialTransform', tform,...
+        'MaxIterations', 10, 'InlierRatio', 0.5);
     
     % 角度
-    R=tform.T(1:3,1:3)';
-    [alpha,beta,gamma]=R2Deg(R);
-    alphas(frameIdx)=alpha;
-    betas(frameIdx)=beta;
-    gammas(frameIdx)=gamma;
+    R = tform.T(1:3,1:3)';
+    [alpha, beta, gamma] = R2Deg(R);
+    alphas(frameIdx) = alpha;
+    betas(frameIdx) = beta;
+    gammas(frameIdx) = gamma;
     
-    if beta>maxYaw
-        xyzPoints=refine(xyzPoints);
-        ptCloud=pointCloud(xyzPoints);
+    if beta > maxYaw
+        xyzPoints = refine(xyzPoints);
+        ptCloud = pointCloud(xyzPoints);
         ptCloud = pcdownsample(ptCloud, 'random', 0.05);
         faceMaxYaw = pctransform(ptCloud, tform);
-        faceMearge=pcmerge(faceMaxYaw, faceMinYaw, mergeSize);
-        face=pcmerge(face0, faceMearge, mergeSize);
-        maxYaw=beta;
+        faceMearge = pcmerge(faceMaxYaw, faceMinYaw, mergeSize);
+        face = pcmerge(face0, faceMearge, mergeSize);
+        maxYaw = beta;
     end
-    if beta<minYaw
-        xyzPoints=refine(xyzPoints);
-        ptCloud=pointCloud(xyzPoints);
+    if beta < minYaw
+        xyzPoints = refine(xyzPoints);
+        ptCloud = pointCloud(xyzPoints);
         ptCloud = pcdownsample(ptCloud, 'random', 0.05);
         faceMinYaw = pctransform(ptCloud, tform);
         faceMearge=pcmerge(faceMaxYaw, faceMinYaw, mergeSize);
-        face=pcmerge(face0, faceMearge, mergeSize);
-        minYaw=beta;
+        face = pcmerge(face0, faceMearge, mergeSize);
+        minYaw = beta;
     end
     
-    if beta>0
-        camera=1;
+    if beta > 0
+        camera = 1;
     else
-        camera=2;
+        camera = 2;
     end
     
     
@@ -220,17 +218,17 @@ tic
     %     title('dispMap')
     
     % ptCloud
-%     figure(2);
-%     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
-%     title('ptCloud');
-%     drawnow
+    %     figure(2);
+    %     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
+    %     title('ptCloud');
+    %     drawnow
     
     
     
     if EOF
         break
     end
-toc
+    toc
 end
 
 %% 後処理
