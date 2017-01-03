@@ -107,7 +107,7 @@ beat_hat(frameIdx) = 0;
 gammas(frameIdx) = 0;
 
 % 画像処理を行う領域を限定する
-% 同時にステレオパラメーターの辻褄を合わせる
+% 同時にステレオパラメーターの辻褄を合わせるために画像中心を変更する
 [stereoParams, ROI] = modifyStereoParams(stereoParams, faceBbox);
 
 
