@@ -20,7 +20,7 @@ clc
 % 動画読み込み
 % videoFileReader=vision.VideoFileReader('D:tanimoto\4.avi',...
 %     'VideoOutputDataType', 'uint8');
-videoFileReader=vision.VideoFileReader('D:1226\30deg\arai\5.mp4',...
+videoFileReader=vision.VideoFileReader('D:1226\30deg\arai\1.mp4',...
     'VideoOutputDataType', 'uint8');
 
 % ステレオパラメーター読み込み
@@ -37,9 +37,9 @@ eyeDetector = vision.CascadeObjectDetector('ClassificationModel',...
     'EyePairBig', 'MinSize', [20,150], 'MaxSize', [200,400], 'UseROI', true);
 
 % データ保存用変数
-alphas = zeros(300, 1);
-betas = zeros(300, 1);
-gammas = zeros(300, 1);
+alphas = zeros(301, 1);
+betas = zeros(301, 1);
+gammas = zeros(301, 1);
 maxYaw = 0;
 minYaw = 0;
 
@@ -75,13 +75,13 @@ end
 
 % 3次元復元を行う領域を決定する
 width = eyeBbox(3);
-dispBbox=determineDispBbox(faceBbox, eyeBbox, width, camera, size(imgL));
+bbox=func(faceBbox, eyeBbox, width, camera, size(imgL));
 
 % minDisparityの決定
-minDisparity = determineMinDisparity(grayL, grayR, dispBbox);
+minDisparity = determineMinDisparity(grayL, grayR, bbox);
 
 % bbox領域の視差計算
-dispMap = disparityBbox(grayL, grayR, dispBbox, minDisparity, camera);
+dispMap = disparityBbox(grayL, grayR, bbox, minDisparity, camera);
 
 % 3次元座標に変換
 xyzPoints = reconstructScene(dispMap, stereoParams{camera});
@@ -106,7 +106,7 @@ alphas(frameIdx) = 0;
 beat_hat(frameIdx) = 0;
 gammas(frameIdx) = 0;
 
-prevDispBbox=dispBbox;
+prevBbox=bbox;
 
 % 画像処理を行う領域を限定する
 % 同時にステレオパラメーターの辻褄を合わせるために画像中心を変更する
@@ -121,6 +121,8 @@ while 1
     [rawStereoImg, EOF] = step(videoFileReader);
     frameIdx = frameIdx + 1;
     disp(frameIdx)
+    if frameIdx==117
+    end
     
     % ROI領域のみを切り取る
     rawStereoImg = bbox2ROI(rawStereoImg, ROI);
@@ -142,7 +144,7 @@ while 1
     if isempty(eyeBbox)
         
         % bbox領域の視差計算
-        dispMap = disparityBbox(grayL, grayR, prevDispBbox, minDisparity, camera);
+        dispMap = disparityBbox(grayL, grayR, prevBbox, minDisparity, camera);
         
         % 3次元座標に変換
         xyzPoints = reconstructScene(dispMap, stereoParams{camera});
@@ -168,6 +170,7 @@ while 1
         % 角度
         R = tform.T(1:3,1:3)';
         [alpha, beta, gamma] = R2Deg(R);
+        [alpha, beta, gamma] = checkPose(alpha,beta,gamma,alphas,betas,gammas,frameIdx);
         alphas(frameIdx) = alpha;
         betas(frameIdx) = beta;
         gammas(frameIdx) = gamma;
@@ -182,10 +185,10 @@ while 1
     end
     
     % 3次元復元を行う領域を決定する
-    dispBbox = determineDispBbox(faceBbox, eyeBbox, width, camera, size(imgL));
+    bbox = func(faceBbox, eyeBbox, width, camera, size(imgL));
     
     % bbox領域の視差計算
-    dispMap = disparityBbox(grayL, grayR, dispBbox, minDisparity, camera);
+    dispMap = disparityBbox(grayL, grayR, bbox, minDisparity, camera);
     
     % 3次元座標に変換
     xyzPoints = reconstructScene(dispMap, stereoParams{camera});
@@ -196,6 +199,7 @@ while 1
     
     % ptCloudに変換
     ptCloud = pointCloud(xyzPoints);
+%     ptCloud=pcdenoise(ptCloud);
     %     figure(1);
     %     pcshow(ptCloud, 'VerticalAxis', 'Y', 'VerticalAxisDir', 'Down')
     %     title('ptCloud');
@@ -212,6 +216,7 @@ while 1
     % 角度
     R = tform.T(1:3,1:3)';
     [alpha, beta, gamma] = R2Deg(R);
+    [alpha, beta, gamma] = checkPose(alpha,beta,gamma,alphas,betas,gammas,frameIdx);
     alphas(frameIdx) = alpha;
     betas(frameIdx) = beta;
     gammas(frameIdx) = gamma;
@@ -260,7 +265,7 @@ while 1
     %     title('ptCloud');
     %     drawnow
     
-    prevDispBbox=dispBbox;
+    prevBbox=bbox;
     
     if EOF
         break
