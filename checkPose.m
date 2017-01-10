@@ -3,15 +3,15 @@ function [ alpha,beta,gamma ] = checkPose( alpha,beta,gamma,...
 %CHECKPOSE この関数の概要をここに記述
 %   詳細説明をここに記述
 
-if abs(alphas(frameIdx-1)-alpha)>20
+if abs(alphas(frameIdx-1)-alpha)>10
     alpha=alphas(frameIdx-1);
 end
 
-if abs(betas(frameIdx-1)-beta)>20
+if abs(betas(frameIdx-1)-beta)>10
     beta=betas(frameIdx-1);
 end
 
-if abs(gammas(frameIdx-1)-gamma)>20
+if abs(gammas(frameIdx-1)-gamma)>10
     gamma=gammas(frameIdx-1);
 end
 

@@ -22,6 +22,7 @@ function [ faceBbox ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,profileF
 % äÁåüèo
 switch camera
     case 1
+        grayL=histeq(grayL);
         faceBbox=step(frontalFaceDetector,grayL);
         
         if ~isempty(faceBbox)
@@ -34,6 +35,7 @@ switch camera
         end
         
     case 2
+        grayR=histeq(grayR);
         faceBbox=step(frontalFaceDetector,grayR);
         
         if ~isempty(faceBbox)
