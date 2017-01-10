@@ -61,9 +61,12 @@ grayR = rgb2gray(imgR);
 grayL = rgb2gray(imgL);
 
 % 顔検出
-faceBbox = detectFaceBbox(grayL, grayR, frontalFaceDetector,...
-    profileFaceDetector, camera);
+[faceBbox,camera] = detectFaceBbox(grayL, grayR, frontalFaceDetector,...
+     camera);
 if isempty(faceBbox)
+    error('error')
+end
+if camera==2
     error('error')
 end
 
@@ -107,6 +110,7 @@ beat_hat(frameIdx) = 0;
 gammas(frameIdx) = 0;
 
 prevBbox=bbox;
+prevCamera=camera;
 
 % 画像処理を行う領域を限定する
 % 同時にステレオパラメーターの辻褄を合わせるために画像中心を変更する
@@ -137,16 +141,21 @@ while 1
     grayL = rgb2gray(imgL);
     
     % 顔検出
-    faceBbox=detectFaceBbox(grayL, grayR, frontalFaceDetector,...
-        profileFaceDetector, camera);
-    
-    % 両目領域を検出
-    eyeBbox = detectEyeBbox(grayL, grayR, eyeDetector, faceBbox, camera);
-    if isempty(eyeBbox)
-        bbox=prevBbox;
+    [faceBbox,camera] = detectFaceBbox(grayL, grayR, frontalFaceDetector,...
+        camera);
+    if ~isempty(faceBbox)
+        % 両目領域を検出
+        eyeBbox = detectEyeBbox(grayL, grayR, eyeDetector, faceBbox, camera);
+        if ~isempty(eyeBbox)
+            % 3次元復元を行う領域を決定する
+            bbox = func(faceBbox, eyeBbox, width, camera, size(imgL));
+        else
+            camera=prevCamera;
+            bbox=prevBbox;
+        end
     else
-        % 3次元復元を行う領域を決定する
-        bbox = func(faceBbox, eyeBbox, width, camera, size(imgL));
+        camera=prevCamera;
+        bbox=prevBbox;
     end
     
     % bbox領域の視差計算
@@ -207,11 +216,7 @@ while 1
         
         
     end
-%     if beta > 0
-%         camera = 1;
-%     else
-        camera = 2;
-%     end
+
     
     %% 確認
     %     % ROI
@@ -232,8 +237,13 @@ while 1
     %     drawnow
     
     prevBbox=bbox;
+    prevCamera=camera;
     
-    
+    if beta > 0
+        camera = 1;
+    else
+        camera = 2;
+    end
     
     if EOF
         break
