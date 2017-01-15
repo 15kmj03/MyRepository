@@ -1,4 +1,4 @@
-function [ faceBbox,camera ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,camera )
+function [ faceBbox] = detectFaceBbox( grayL,frontalFaceDetector )
 %DETECTFACE 顔領域を検出する
 %
 %   [ faceBbox ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,profileFaceDetector,camera )
@@ -20,42 +20,14 @@ function [ faceBbox,camera ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,c
 % 見つからなかった場合、横顔検出を行う
 
 % 顔検出
-switch camera
-    case 1
 %         grayL=histeq(grayL);
-        faceBbox=step(frontalFaceDetector,grayL);
-        
-        if ~isempty(faceBbox)
-            faceBbox=faceBbox(1,:);
-        else
-%             grayR=histeq(grayR);
-            faceBbox=step(frontalFaceDetector,grayR);
-            
-            if ~isempty(faceBbox)
-                faceBbox=faceBbox(1,:);
-                camera=2;
-            end
-        end
-        
-    case 2
-%         grayR=histeq(grayR);
-        faceBbox=step(frontalFaceDetector,grayR);
-        
-        if ~isempty(faceBbox)
-            faceBbox=faceBbox(1,:);
-        else
-%             grayL=histeq(grayL);
-            faceBbox=step(frontalFaceDetector,grayL);
-            
-            if ~isempty(faceBbox)
-                faceBbox=faceBbox(1,:);
-                camera=1;
-            end
-        end
-        
-    otherwise
-        error('error')
+faceBbox=step(frontalFaceDetector,grayL);
+
+if ~isempty(faceBbox)
+    faceBbox=faceBbox(1,:);
+    
 end
+
 
 end
 
