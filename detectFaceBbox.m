@@ -1,4 +1,4 @@
-function [ faceBbox ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,profileFaceDetector,camera )
+function [ faceBbox,camera ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,camera )
 %DETECTFACE äÁóÃàÊÇåüèoÇ∑ÇÈ
 %
 %   [ faceBbox ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,profileFaceDetector,camera )
@@ -22,26 +22,34 @@ function [ faceBbox ] = detectFaceBbox( grayL,grayR,frontalFaceDetector,profileF
 % äÁåüèo
 switch camera
     case 1
+%         grayL=histeq(grayL);
         faceBbox=step(frontalFaceDetector,grayL);
         
         if ~isempty(faceBbox)
             faceBbox=faceBbox(1,:);
         else
-            faceBbox=step(profileFaceDetector,grayL);
+%             grayR=histeq(grayR);
+            faceBbox=step(frontalFaceDetector,grayR);
+            
             if ~isempty(faceBbox)
                 faceBbox=faceBbox(1,:);
+                camera=2;
             end
         end
         
     case 2
+%         grayR=histeq(grayR);
         faceBbox=step(frontalFaceDetector,grayR);
         
         if ~isempty(faceBbox)
             faceBbox=faceBbox(1,:);
         else
-            faceBbox=step(profileFaceDetector,grayR);
+%             grayL=histeq(grayL);
+            faceBbox=step(frontalFaceDetector,grayL);
+            
             if ~isempty(faceBbox)
                 faceBbox=faceBbox(1,:);
+                camera=1;
             end
         end
         

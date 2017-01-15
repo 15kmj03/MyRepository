@@ -11,7 +11,7 @@ h=faceBbox(4);
 xx=1;
 yy=y-round(h/2);
 ww=2047;
-hh=y+round(h/2);
+hh=2*h;
 
 % 無効なインデックスを参照しないように調整
 if yy<1

@@ -1,8 +1,8 @@
-function [ dispBbox ] = determineDispBbox( faceBbox,eyeBbox, width, camera,...
+function [ dispBbox ] = func( faceBbox,eyeBbox, width, camera,...
     imageSize)
-%DETERMINEDISPBBOX dispBbox‚ðŒˆ’è‚·‚é
+%FUNC dispBbox‚ðŒˆ’è‚·‚é
 % 
-%   [ dispBbox ] = determineDispBbox( faceBbox,eyeBbox, width, camera )
+%   [ dispBbox ] = func( faceBbox,eyeBbox, width, camera )
 % 
 %   input
 %   faceBbox:Šç—Ìˆæ
